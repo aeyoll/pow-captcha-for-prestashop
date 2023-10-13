@@ -1,7 +1,15 @@
 <?php
 
+use PrestaShop\Module\PowCaptcha\Service\PowCaptchaService;
+
 if (!defined('_PS_VERSION_')) {
     exit;
+}
+
+$autoloadPath = __DIR__ . '/vendor/autoload.php';
+
+if (file_exists($autoloadPath)) {
+    require_once $autoloadPath;
 }
 
 class Pow_Captcha extends Module
@@ -45,7 +53,7 @@ class Pow_Captcha extends Module
         /**
          * If values have been submitted in the form, process.
          */
-        if (((bool)Tools::isSubmit('submitPow_captchaModule')) == true) {
+        if (((bool)Tools::isSubmit('submitPow_captchaModule'))) {
             $this->postProcess();
         }
 
@@ -181,51 +189,12 @@ class Pow_Captcha extends Module
         if ($shouldValidateCaptcha) {
             $challenge = Tools::getValue('challenge', '');
             $nonce = Tools::getValue('nonce', '');
-            $isValid = $this->validateCaptcha($challenge, $nonce);
+            $pcs = new PowCaptchaService();
+            $isValid = $pcs->validateCaptcha($challenge, $nonce);
 
             if (!$isValid) {
                 $this->context->controller->errors[] = $this->trans('Captcha is not valid', [], 'Modules.PowCaptcha.Front');
             }
-        }
-    }
-
-    /**
-     * @param $url The path to request
-     * @param $returnStatusCode If true; return the status code instead of the content
-     */
-    protected function request(string $url, $returnStatusCode = false)
-    {
-        $baseUrl = Configuration::get('POW_CAPTCHA_API_URL');
-        $apiToken = Configuration::get('POW_CAPTCHA_API_TOKEN');
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, sprintf('%s%s', $baseUrl, $url));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [sprintf('Authorization: Bearer %s', $apiToken)]);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        if ($returnStatusCode) {
-            curl_setopt($ch, CURLOPT_HEADER, true);
-            curl_setopt($ch, CURLOPT_NOBODY, true);
-        }
-
-        $response = @curl_exec($ch);
-
-        if ($returnStatusCode) {
-            return curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        } else {
-            return $response;
-        }
-    }
-
-    public function validateCaptcha(string $challenge, string $nonce): bool
-    {
-        $url = sprintf('Verify?challenge=%s&nonce=%s', $challenge, $nonce);
-
-        try {
-            $statusCode = $this->request($url, true);
-            return $statusCode === 200;
-        } catch (\Exception $e) {
-            return false;
         }
     }
 }
