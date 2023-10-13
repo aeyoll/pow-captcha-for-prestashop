@@ -29,6 +29,7 @@ class Pow_Captcha extends Module
     {
         $hooks = [
             'displayHeader',
+            'displayBeforeContactFormSubmit',
             'actionBeforeContactSubmit',
         ];
 
@@ -135,7 +136,7 @@ class Pow_Captcha extends Module
         return array(
             'POW_CAPTCHA_ENABLE' => Configuration::get('POW_CAPTCHA_ENABLE', true),
             'POW_CAPTCHA_API_TOKEN' => Configuration::get('POW_CAPTCHA_API_TOKEN', ''),
-            'POW_CAPTCHA_API_URL' => Configuration::get('POW_CAPTCHA_API_URL', null),
+            'POW_CAPTCHA_API_URL' => Configuration::get('POW_CAPTCHA_API_URL', ''),
         );
     }
 
@@ -157,9 +158,18 @@ class Pow_Captcha extends Module
             && Configuration::get('POW_CAPTCHA_ENABLE') == 1;
 
         if ($shouldDisplayCaptcha) {
-            $baseUrl = Configuration::getValue('POW_CAPTCHA_API_URL');
-            $this->context->controller->registerJavascript('pow-captcha', $baseUrl . '/static/captcha.js');
+            $baseUrl = Configuration::get('POW_CAPTCHA_API_URL');
+            $powCaptchaJavascriptUrl = $baseUrl . 'static/captcha.js?v=1.0';
+
+            $this->context->smarty->assign('powCaptchaJavascriptUrl', $powCaptchaJavascriptUrl);
+
+            return $this->display(__FILE__, 'views/templates/hook/header.tpl');
         }
+    }
+
+    public function hookDisplayBeforeContactFormSubmit()
+    {
+        return $this->display(__FILE__, 'views/templates/hook/beforeContactFormSubmit.tpl');
     }
 
     public function hookActionBeforeContactSubmit()
@@ -185,8 +195,8 @@ class Pow_Captcha extends Module
      */
     protected function request(string $url, $returnStatusCode = false)
     {
-        $baseUrl = Configuration::getValue('POW_CAPTCHA_API_URL');
-        $apiToken = Configuration::getValue('POW_CAPTCHA_API_TOKEN');
+        $baseUrl = Configuration::get('POW_CAPTCHA_API_URL');
+        $apiToken = Configuration::get('POW_CAPTCHA_API_TOKEN');
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, sprintf('%s%s', $baseUrl, $url));
