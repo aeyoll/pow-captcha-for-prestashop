@@ -1,5 +1,5 @@
 {
-  "name": "prestashop/pow_captcha",
+  "name": "aeyoll/pow-captcha-for-prestashop",
   "description": "PowCaptcha for PrestaShop",
   "license": "MIT",
   "require": {
