@@ -162,8 +162,7 @@ class Pow_Captcha extends Module
 
     public function hookDisplayHeader()
     {
-        $shouldDisplayCaptcha = $this->context->controller instanceof ContactController
-            && Configuration::get('POW_CAPTCHA_ENABLE') == 1;
+        $shouldDisplayCaptcha = Configuration::get('POW_CAPTCHA_ENABLE') == 1;
 
         if ($shouldDisplayCaptcha) {
             $baseUrl = Configuration::get('POW_CAPTCHA_API_URL');
@@ -175,15 +174,17 @@ class Pow_Captcha extends Module
         }
     }
 
-    public function hookDisplayBeforeContactFormSubmit()
+    public function hookDisplayBeforeContactFormSubmit($params)
     {
-        return $this->display(__FILE__, 'views/templates/hook/beforeContactFormSubmit.tpl');
+        return $this->display(__FILE__, 'views/templates/hook/beforeContactFormSubmit.tpl', [
+            'pow_captcha_id' => $params['id'],
+            'pow_captcha_form' => $params['form'],
+        ]);
     }
 
     public function hookActionBeforeContactSubmit()
     {
-        $shouldValidateCaptcha = $this->context->controller instanceof ContactController
-            && Configuration::get('POW_CAPTCHA_ENABLE') == 1
+        $shouldValidateCaptcha = Configuration::get('POW_CAPTCHA_ENABLE') == 1
             && Tools::isSubmit('submitMessage');
 
         if ($shouldValidateCaptcha) {
