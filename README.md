@@ -15,5 +15,8 @@ Usage
 In the contact form template, add the following above the submit button:
 
 ```
-{hook h='displayBeforeContactFormSubmit' m='pow_captcha'}
+{hook h='displayBeforeContactFormSubmit' m='pow_captcha' id='contactform' form='#contact-form'}
 ```
+
+- `ìd` must be an unique id for the captcha
+- `form` must be a css selector for the form containing the captcha
