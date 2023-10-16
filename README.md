@@ -2,6 +2,13 @@
 
 This plugin allows you to validate the contact form using Pow Captcha.
 
+Installation
+---
+
+```sh
+composer require aeyoll/pow_captcha
+```
+
 Usage
 ---
 
