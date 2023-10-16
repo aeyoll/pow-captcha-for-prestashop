@@ -1,11 +1,7 @@
 {
   "name": "prestashop/pow_captcha",
   "description": "PowCaptcha for PrestaShop",
-  "authors": [
-    {
-      "name": "aeyoll"
-    }
-  ],
+  "license": "MIT",
   "require": {
     "php": ">=7.0.0",
     "guzzlehttp/guzzle": "^7.7",
@@ -22,5 +18,7 @@
     "prepend-autoloader": false
   },
   "type": "prestashop-module",
-  "author": "aeyoll"
+  "authors": [{
+    "name": "Jean-Philippe Bidegain"
+  }]
 }
