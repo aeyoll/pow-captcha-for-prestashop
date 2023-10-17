@@ -1,37 +1,44 @@
-<script src="{$powCaptchaJavascriptUrl}"></script>
-<script>
+{* <style>
+.sqr-captcha-hidden {
+  display: none !important;
+}
+</style> *}
+
+<script async defer src="{$powCaptchaJavascriptUrl}"></script>
+<script async defer>
   const url = "{$link->getModuleLink('pow_captcha', 'ajax')}";
   const selector = '.pow-captcha-placeholder';
 
   document.addEventListener('DOMContentLoaded', function() {
     const captchas = document.querySelectorAll(selector);
-    let count = 0;
+    const fetchPromises = [];
 
     [].forEach.call(captchas, function(captcha) {
       const id = captcha.dataset.id;
-      const form = captcha.dataset.form;
 
       const params = new URLSearchParams({
         id,
-        form,
       });
 
       const fullUrl = url + '?' + params.toString();
 
-      fetch(fullUrl)
-      .then(response => response.text())
-      .then(html => {
-        captcha.innerHTML = html;
-        count++;
+      const fetchPromise = fetch(fullUrl)
+        .then(response => response.text())
+        .then(html => {
+          captcha.innerHTML = html;
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
 
-        // Ensure sqrCaptchaInit is called only once
-        if (count === captchas.length) {
-          window.sqrCaptchaInit();
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
+      fetchPromises.push(fetchPromise);
     });
+
+    // Wait for all fetch requests to complete
+    Promise
+      .all(fetchPromises)
+      .then(() => {
+        window.sqrCaptchaInit();
+      });
   });
 </script>
