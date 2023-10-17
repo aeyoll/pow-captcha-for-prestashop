@@ -59,7 +59,7 @@ class PowCaptchaService
         $cache_key = 'pow_captcha_for_prestashop_challenges';
 
         // Generate a directory path to store the cache
-        $directory = sys_get_temp_dir() . 'pow_captcha_for_prestashop-' . md5(__DIR__);
+        $directory = sys_get_temp_dir() . '/pow_captcha_for_prestashop-' . md5(__DIR__);
 
         // Create a new filesystem cache adapter, caching the values for a month
         $cache = new FilesystemAdapter('pow_captcha_for_prestashop', 30 * 24 * 3600, $directory);
