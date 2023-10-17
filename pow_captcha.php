@@ -173,10 +173,6 @@ class Pow_Captcha extends Module
             $baseUrl = Configuration::get('POW_CAPTCHA_API_URL');
             $powCaptchaJavascriptUrl = $baseUrl . 'static/captcha.js?v=1.0';
 
-            // Preload challenges
-            $pcs = new PowCaptchaService();
-            $pcs->getChallenge();
-
             $this->context->smarty->assign('powCaptchaJavascriptUrl', $powCaptchaJavascriptUrl);
 
             return $this->display(__FILE__, 'views/templates/hook/header.tpl');
