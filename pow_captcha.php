@@ -187,21 +187,6 @@ class Pow_Captcha extends Module
      */
     public function hookDisplayBeforeContactFormSubmit($params)
     {
-        if (!array_key_exists('id', $params) || !$params['id']) {
-            $this->context->controller->errors[] = $this->trans('Missing id parameter in displayBeforeContactFormSubmit hook', [], 'Modules.PowCaptcha.Front');
-            return;
-        }
-
-        if (!array_key_exists('form', $params) || !$params['form']) {
-            $this->context->controller->errors[] = $this->trans('Missing form parameter in displayBeforeContactFormSubmit hook', [], 'Modules.PowCaptcha.Front');
-            return;
-        }
-
-        $this->context->smarty->assign([
-            'pow_captcha_id' => $params['id'],
-            'pow_captcha_form' => $params['form'],
-        ]);
-
         return $this->display(__FILE__, 'views/templates/hook/beforeContactFormSubmit.tpl');
     }
 
