@@ -1,8 +1,3 @@
-<style>
-.sqr-captcha-hidden {
-  display: none !important;
-}
-</style>
 <input type="hidden" name="challenge" value="{$challenge}" />
 <input type="hidden" name="nonce" />
 

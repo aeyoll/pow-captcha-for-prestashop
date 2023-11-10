@@ -38,7 +38,7 @@ class Pow_Captcha extends Module
         $hooks = [
             'displayHeader',
             'displayBeforeContactFormSubmit',
-            'actionBeforeContactSubmit',
+            'actionControllerInitAfter',
         ];
 
         return parent::install()
@@ -160,10 +160,14 @@ class Pow_Captcha extends Module
         }
     }
 
+    /**
+     * This hook loads Pow Captcha scripts
+     *
+     * @return void
+     */
     public function hookDisplayHeader()
     {
-        $shouldDisplayCaptcha = $this->context->controller instanceof ContactController
-            && Configuration::get('POW_CAPTCHA_ENABLE') == 1;
+        $shouldDisplayCaptcha = Configuration::get('POW_CAPTCHA_ENABLE') == 1;
 
         if ($shouldDisplayCaptcha) {
             $baseUrl = Configuration::get('POW_CAPTCHA_API_URL');
@@ -175,25 +179,50 @@ class Pow_Captcha extends Module
         }
     }
 
-    public function hookDisplayBeforeContactFormSubmit()
+    /**
+     * This hook loads the Pow Captcha markup for each form
+     *
+     * @param array $params
+     * @return void
+     */
+    public function hookDisplayBeforeContactFormSubmit($params)
     {
         return $this->display(__FILE__, 'views/templates/hook/beforeContactFormSubmit.tpl');
     }
 
-    public function hookActionBeforeContactSubmit()
+    /**
+     * This hook is called to validate the captcha
+     *
+     * @return void
+     */
+    public function hookActionControllerInitAfter()
     {
-        $shouldValidateCaptcha = $this->context->controller instanceof ContactController
-            && Configuration::get('POW_CAPTCHA_ENABLE') == 1
-            && Tools::isSubmit('submitMessage');
+        $shouldValidateCaptcha = Configuration::get('POW_CAPTCHA_ENABLE') == 1
+            && Tools::isSubmit('challenge')
+            && Tools::isSubmit('nonce');
 
         if ($shouldValidateCaptcha) {
             $challenge = Tools::getValue('challenge', '');
             $nonce = Tools::getValue('nonce', '');
+
+            PrestaShopLogger::addLog(sprintf('[pow_captcha]: Trying to validate captcha with challenge %s and nonce %s', $challenge, $nonce));
+
             $pcs = new PowCaptchaService();
             $isValid = $pcs->validateCaptcha($challenge, $nonce);
 
             if (!$isValid) {
+                PrestaShopLogger::addLog('[pow_captcha]: Failed to validate captcha', 2);
                 $this->context->controller->errors[] = $this->trans('Captcha is not valid', [], 'Modules.PowCaptcha.Front');
+
+                // When the controller is a ModuleFrontController, the erreor can be
+                // in "controller->module->error" (e.g. in ps_emailsubscription)
+                if (property_exists($this->context->controller, 'module')) {
+                    $this->context->controller->module->error = $this->trans('Captcha is not valid', [], 'Modules.PowCaptcha.Front');
+                }
+
+                return;
+            } else {
+                PrestaShopLogger::addLog('[pow_captcha]: Captcha validated successfully');
             }
         }
     }
