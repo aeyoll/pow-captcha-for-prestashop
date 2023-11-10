@@ -3,8 +3,8 @@
   "description": "PowCaptcha for PrestaShop",
   "license": "MIT",
   "require": {
-    "php": ">=7.0.0",
-    "guzzlehttp/guzzle": "^7.0",
+    "php": ">=7.1.0",
+    "guzzlehttp/guzzle": "^6.5",
     "symfony/cache": "^4.0"
   },
   "autoload": {
