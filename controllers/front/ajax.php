@@ -15,7 +15,6 @@ class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
         parent::initContent();
 
         $powCaptchaApiUrl = Configuration::get('POW_CAPTCHA_API_URL');
-        $id = Tools::getValue('id');
 
         $pcs = new PowCaptchaService();
         $challenge = $pcs->getChallenge();
@@ -23,7 +22,6 @@ class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
         $this->context->smarty->assign([
             'powCaptchaApiUrl' => $powCaptchaApiUrl,
             'challenge' => $challenge,
-            'id' => $id,
         ]);
 
         $this->setTemplate('module:pow_captcha/views/templates/front/ajax.tpl');

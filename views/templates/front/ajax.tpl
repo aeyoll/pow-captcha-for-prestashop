@@ -4,5 +4,5 @@
 <div class="captcha-container"
   data-sqr-captcha-url="{$powCaptchaApiUrl}"
   data-sqr-captcha-challenge="{$challenge}"
-  data-sqr-captcha-callback="myCaptchaCallback{$id}">
+  data-sqr-captcha-callback="myCaptchaCallback">
 </div>
