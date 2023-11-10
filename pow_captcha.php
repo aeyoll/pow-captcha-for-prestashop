@@ -6,10 +6,16 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$autoloadPath = __DIR__ . '/vendor/autoload.php';
 
-if (file_exists($autoloadPath)) {
-    require_once $autoloadPath;
+$autoloadPaths = [
+    __DIR__ . '/vendor/autoload.php',
+    __DIR__ . '/../../vendor/autoload.php',
+];
+
+foreach ($autoloadPaths as $autoloadPath) {
+    if (file_exists($autoloadPath)) {
+        require_once $autoloadPath;
+    }
 }
 
 class Pow_Captcha extends Module
