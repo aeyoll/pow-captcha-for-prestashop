@@ -34,33 +34,35 @@ For Prestashop 1.6, this minimum composer.json file is required at the root of y
 }
 ```
 
-Then, you need to override this Controller class ()`classes/controller/Controller.php`), so the `actionControllerInitAfter` is called:
+Then, you need to override this Controller class (`classes/controller/Controller.php`), so the `actionControllerInitAfter` is called:
 
-```diff
-    /**
-     * Initialize the page
-     */
-    public function init()
-    {
-        if (_PS_MODE_DEV_ && $this->controller_type == 'admin') {
-            set_error_handler(array(__CLASS__, 'myErrorHandler'));
-        }
-
-        if (!defined('_PS_BASE_URL_')) {
-            define('_PS_BASE_URL_', Tools::getShopDomain(true));
-        }
-
-        if (!defined('_PS_BASE_URL_SSL_')) {
-            define('_PS_BASE_URL_SSL_', Tools::getShopDomainSsl(true));
-        }
-
-        Hook::exec(
-            'actionControllerInitAfter',
-            [
-                'controller' => $this,
-            ]
-        );
+```php
+/**
+  * Initialize the page
+  */
+public function init()
+{
+    if (_PS_MODE_DEV_ && $this->controller_type == 'admin') {
+        set_error_handler(array(__CLASS__, 'myErrorHandler'));
     }
+
+    if (!defined('_PS_BASE_URL_')) {
+        define('_PS_BASE_URL_', Tools::getShopDomain(true));
+    }
+
+    if (!defined('_PS_BASE_URL_SSL_')) {
+        define('_PS_BASE_URL_SSL_', Tools::getShopDomainSsl(true));
+    }
+
+    // Override
+    Hook::exec(
+        'actionControllerInitAfter',
+        [
+            'controller' => $this,
+        ]
+    );
+    // /Override
+}
 ```
 
 Usage
