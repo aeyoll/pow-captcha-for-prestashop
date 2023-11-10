@@ -33,6 +33,15 @@ class Pow_Captcha extends Module
         $this->errors = array();
     }
 
+    protected function trans($id, array $parameters = [], $domain = null, $locale = null)
+    {
+        if (version_compare(_PS_VERSION_, '1.7.0.0', '<')) {
+            return $id;
+        } else {
+            parent::trans($id, $parameters, $domain, $locale);
+        }
+    }
+
     public function install()
     {
         $hooks = [
