@@ -15,6 +15,8 @@ foreach ($autoloadPaths as $autoloadPath) {
 
 class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
 {
+    public $ajax = true;
+
     public function initContent()
     {
         parent::initContent();
@@ -29,6 +31,11 @@ class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
             'challenge' => $challenge,
         ]);
 
-        $this->setTemplate('module:pow_captcha/views/templates/front/ajax.tpl');
+        if (version_compare(_PS_VERSION_, '1.7.0.0', '<')) {
+            $this->context->smarty->display(__DIR__ . '/../../views/templates/front/ajax.tpl');
+            die();
+        } else {
+            $this->setTemplate('module:pow_captcha/views/templates/front/ajax.tpl');
+        }
     }
 }
