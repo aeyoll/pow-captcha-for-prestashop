@@ -2,10 +2,15 @@
 
 use PrestaShop\Module\PowCaptcha\Service\PowCaptchaService;
 
-$autoloadPath = __DIR__ . '/../../vendor/autoload.php';
+$autoloadPaths = [
+    __DIR__ . '/../../vendor/autoload.php',
+    __DIR__ . '/../../../../vendor/autoload.php',
+];
 
-if (file_exists($autoloadPath)) {
-    require_once $autoloadPath;
+foreach ($autoloadPaths as $autoloadPath) {
+    if (file_exists($autoloadPath)) {
+        require_once $autoloadPath;
+    }
 }
 
 class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
