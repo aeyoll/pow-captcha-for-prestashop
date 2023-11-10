@@ -2,14 +2,21 @@
 
 use PrestaShop\Module\PowCaptcha\Service\PowCaptchaService;
 
-$autoloadPath = __DIR__ . '/../../vendor/autoload.php';
+$autoloadPaths = [
+    __DIR__ . '/../../vendor/autoload.php',
+    __DIR__ . '/../../../../vendor/autoload.php',
+];
 
-if (file_exists($autoloadPath)) {
-    require_once $autoloadPath;
+foreach ($autoloadPaths as $autoloadPath) {
+    if (file_exists($autoloadPath)) {
+        require_once $autoloadPath;
+    }
 }
 
 class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
 {
+    public $ajax = true;
+
     public function initContent()
     {
         parent::initContent();
@@ -24,6 +31,11 @@ class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
             'challenge' => $challenge,
         ]);
 
-        $this->setTemplate('module:pow_captcha/views/templates/front/ajax.tpl');
+        if (version_compare(_PS_VERSION_, '1.7.0.0', '<')) {
+            $this->context->smarty->display(__DIR__ . '/../../views/templates/front/ajax.tpl');
+            die();
+        } else {
+            $this->setTemplate('module:pow_captcha/views/templates/front/ajax.tpl');
+        }
     }
 }

@@ -6,10 +6,16 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-$autoloadPath = __DIR__ . '/vendor/autoload.php';
 
-if (file_exists($autoloadPath)) {
-    require_once $autoloadPath;
+$autoloadPaths = [
+    __DIR__ . '/vendor/autoload.php',
+    __DIR__ . '/../../vendor/autoload.php',
+];
+
+foreach ($autoloadPaths as $autoloadPath) {
+    if (file_exists($autoloadPath)) {
+        require_once $autoloadPath;
+    }
 }
 
 class Pow_Captcha extends Module
@@ -31,6 +37,15 @@ class Pow_Captcha extends Module
         $this->ps_versions_compliancy = ['min' => '1.6.0.0', 'max' => _PS_VERSION_];
 
         $this->errors = array();
+    }
+
+    protected function trans($id, array $parameters = [], $domain = null, $locale = null)
+    {
+        if (version_compare(_PS_VERSION_, '1.7.0.0', '<')) {
+            return $id;
+        } else {
+            parent::trans($id, $parameters, $domain, $locale);
+        }
     }
 
     public function install()
