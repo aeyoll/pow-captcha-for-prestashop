@@ -1,6 +1,6 @@
 # Pow Captcha for PrestaShop
 
-This plugin allows you to validate the contact form using Pow Captcha.
+This plugin allows you to validate the contact form using Pow Captcha. Tested on PrestaShop 8.1+.
 
 Installation
 ---
