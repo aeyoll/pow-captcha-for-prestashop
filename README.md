@@ -2,6 +2,11 @@
 
 This plugin allows you to validate the contact form using Pow Captcha. Tested on PrestaShop 1.6 to 8.1.
 
+Requirements
+---
+
+PHP 7.1+ and php_curl is needed to use this module.
+
 Installation
 ---
 
