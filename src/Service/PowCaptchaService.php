@@ -3,7 +3,6 @@
 namespace PrestaShop\Module\PowCaptcha\Service;
 
 use Configuration;
-use GuzzleHttp\Client;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 class PowCaptchaService
@@ -11,23 +10,21 @@ class PowCaptchaService
     protected $client;
 
     /**
-     * Retrieves the HTTP client for making API requests.
+     * Retrieves the cURL handle for making API requests.
      *
-     * @return Client The GuzzleHttp client instance.
+     * @return The cURL handle.
      */
     public function getClient()
     {
         if (!$this->client) {
-            $baseUrl = Configuration::get('POW_CAPTCHA_API_URL');
             $apiToken = Configuration::get('POW_CAPTCHA_API_TOKEN');
 
-            $this->client = new Client([
-                'base_uri' => $baseUrl,
-                'timeout'  => 5.0,
-                'headers' => [
-                    'Authorization' => sprintf('Bearer %s', $apiToken),
-                ],
+            $this->client = curl_init();
+            curl_setopt($this->client, CURLOPT_TIMEOUT, 5.0);
+            curl_setopt($this->client, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $apiToken,
             ]);
+            curl_setopt($this->client, CURLOPT_RETURNTRANSFER, true);
         }
 
         return $this->client;
@@ -40,8 +37,17 @@ class PowCaptchaService
      */
     public function loadChallenges()
     {
-        $response = $this->getClient()->post('GetChallenges?difficultyLevel=5');
-        $json = $response->getBody()->getContents();
+        $domain = Configuration::get('POW_CAPTCHA_API_URL');
+        $url = 'GetChallenges?difficultyLevel=5';
+        $requestUri = $domain . $url;
+
+        $ch = $this->getClient();
+
+        curl_setopt($ch, CURLOPT_URL, $requestUri);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, []);
+
+        $json = curl_exec($ch);
         $data = json_decode($json, true);
 
         return $data;
@@ -103,13 +109,31 @@ class PowCaptchaService
      */
     public function validateCaptcha($challenge, $nonce): bool
     {
+        $domain = Configuration::get('POW_CAPTCHA_API_URL');
         $url = sprintf('Verify?challenge=%s&nonce=%s', $challenge, $nonce);
+        $requestUri = $domain . $url;
+
+        $ch = $this->getClient();
+        curl_setopt($ch, CURLOPT_URL, $requestUri);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, []);
 
         try {
-            $response = $this->getClient()->post($url);
-            return $response->getStatusCode() === 200;
+            curl_exec($ch);
+            $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            return $statusCode === 200;
         } catch (\Exception $e) {
             return false;
+        }
+    }
+
+    /**
+     * Closes the cURL handle when the object is destroyed.
+     */
+    public function __destruct()
+    {
+        if ($this->client) {
+            curl_close($this->client);
         }
     }
 }
