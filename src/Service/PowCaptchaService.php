@@ -3,7 +3,6 @@
 namespace PrestaShop\Module\PowCaptcha\Service;
 
 use Configuration;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
 class PowCaptchaService
 {
@@ -60,26 +59,25 @@ class PowCaptchaService
      */
     public function getChallenge()
     {
-
-        // Define the cache key for storing the challenges
-        $cache_key = 'pow_captcha_for_prestashop_challenges';
-
         // Generate a directory path to store the cache
         $directory = sys_get_temp_dir() . '/pow_captcha_for_prestashop-' . md5(__DIR__);
 
-        // Create a new filesystem cache adapter, caching the values for a month
-        $cache = new FilesystemAdapter('pow_captcha_for_prestashop', 30 * 24 * 3600, $directory);
+        // Initialize cache
+        $cache = new PowCaptchaFileCache([
+            'cache_dir' => $directory,
+        ]);
+
+        // Define the cache key for storing the challenges
+        $cacheKey = 'pow_captcha_for_prestashop_challenges';
+        $lifetime = 30 * 24 * 3600; // A month
 
         // Retrieve the challenges from the cache using the cache key
-        $challengesCache = $cache->getItem($cache_key);
+        $challenges = $cache->get($cacheKey);
 
-        if (!$challengesCache->isHit()) {
+        if (!$challenges) {
             // If the challenges are not found in the cache, load them from the API
             $challenges = $this->loadChallenges();
         } else {
-            // If the challenges are found in the cache, retrieve them
-            $challenges = $challengesCache->get();
-
             if (count($challenges) < 5) {
                 // If the number of challenges is less than 5, reload them from the API
                 $challenges = $this->loadChallenges();
@@ -89,11 +87,8 @@ class PowCaptchaService
         // Get the first challenge from the array
         $challenge = array_shift($challenges);
 
-        // Update the challenges cache with the remaining challenges
-        $challengesCache->set($challenges);
-
         // Save the challenges cache
-        $cache->save($challengesCache);
+        $cache->save($cacheKey, $challenges, $lifetime);
 
         // Return the retrieved challenge
         return $challenge;
