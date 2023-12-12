@@ -31,6 +31,10 @@ class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
             'challenge' => $challenge,
         ]);
 
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Cache-Control: post-check=0, pre-check=0', false);
+        header('Pragma: no-cache');
+
         if (version_compare(_PS_VERSION_, '1.7.0.0', '<')) {
             $this->context->smarty->display(__DIR__ . '/../../views/templates/front/ajax.tpl');
             die();
