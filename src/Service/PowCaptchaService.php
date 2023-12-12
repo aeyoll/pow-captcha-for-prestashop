@@ -69,7 +69,7 @@ class PowCaptchaService
 
         // Define the cache key for storing the challenges
         $cacheKey = 'pow_captcha_for_prestashop_challenges';
-        $lifetime = 30 * 24 * 3600; // A month
+        $lifetime = 3600; // An hour
 
         // Retrieve the challenges from the cache using the cache key
         $challenges = $cache->get($cacheKey);
