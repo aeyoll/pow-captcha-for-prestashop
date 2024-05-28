@@ -31,21 +31,12 @@ class Pow_Captcha extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->trans('Pow Captcha', [], 'Modules.PowCaptcha.Admin');
-        $this->description = $this->trans('Pow Captcha for PrestaShop', [], 'Modules.Mercerine.Admin');
+        $this->displayName = $this->l('Pow Captcha');
+        $this->description = $this->l('Pow Captcha for PrestaShop');
 
         $this->ps_versions_compliancy = ['min' => '1.6.0.0', 'max' => _PS_VERSION_];
 
         $this->errors = array();
-    }
-
-    protected function trans($id, array $parameters = [], $domain = null, $locale = null)
-    {
-        if (version_compare(_PS_VERSION_, '1.7.0.0', '<')) {
-            return $id;
-        } else {
-            parent::trans($id, $parameters, $domain, $locale);
-        }
     }
 
     public function install()
@@ -227,12 +218,12 @@ class Pow_Captcha extends Module
 
             if (!$isValid) {
                 PrestaShopLogger::addLog('[pow_captcha]: Failed to validate captcha', 2);
-                $this->context->controller->errors[] = $this->trans('Captcha is not valid', [], 'Modules.PowCaptcha.Front');
+                $this->context->controller->errors[] = $this->l('Captcha is not valid');
 
                 // When the controller is a ModuleFrontController, the erreor can be
                 // in "controller->module->error" (e.g. in ps_emailsubscription)
                 if (property_exists($this->context->controller, 'module')) {
-                    $this->context->controller->module->error = $this->trans('Captcha is not valid', [], 'Modules.PowCaptcha.Front');
+                    $this->context->controller->module->error = $this->l('Captcha is not valid');
                 }
 
                 return;
