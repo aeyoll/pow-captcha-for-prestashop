@@ -196,6 +196,17 @@ class Pow_Captcha extends Module
         return $this->display(__FILE__, 'views/templates/hook/beforeContactFormSubmit.tpl');
     }
 
+    public function shouldValidateCaptcha()
+    {
+        $captchaEnabled = Configuration::get('POW_CAPTCHA_ENABLE') == 1;
+        $shouldValidateCaptcha = Tools::isSubmit('challenge')
+            && Tools::isSubmit('nonce');
+
+        $isSubmittingContactPage = $this->context->controller->php_self == 'contact' && $_SERVER['REQUEST_METHOD'] === 'POST';
+
+        return $captchaEnabled && ($shouldValidateCaptcha || $isSubmittingContactPage);
+    }
+
     /**
      * This hook is called to validate the captcha
      *
@@ -203,9 +214,7 @@ class Pow_Captcha extends Module
      */
     public function hookActionControllerInitAfter()
     {
-        $shouldValidateCaptcha = Configuration::get('POW_CAPTCHA_ENABLE') == 1
-            && Tools::isSubmit('challenge')
-            && Tools::isSubmit('nonce');
+        $shouldValidateCaptcha = $this->shouldValidateCaptcha();
 
         if ($shouldValidateCaptcha) {
             $challenge = Tools::getValue('challenge', '');
