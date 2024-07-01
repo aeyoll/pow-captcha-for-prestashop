@@ -20,6 +20,8 @@ foreach ($autoloadPaths as $autoloadPath) {
 
 class Pow_Captcha extends Module
 {
+    public $errors = [];
+
     public function __construct()
     {
         $this->name = 'pow_captcha';
@@ -35,8 +37,6 @@ class Pow_Captcha extends Module
         $this->description = $this->l('Pow Captcha for PrestaShop');
 
         $this->ps_versions_compliancy = ['min' => '1.6.0.0', 'max' => _PS_VERSION_];
-
-        $this->errors = array();
     }
 
     public function install()
