@@ -79,8 +79,38 @@ In each form template, add the following above the submit button:
 {hook h='displayBeforeContactFormSubmit' m='pow_captcha'}
 ```
 
-Module compatibility
+Compatibility
 ---
+
+### Registration
+
+Add this in `themes/your_theme/templates/customer/_partials/customer-form.tpl`
+
+```diff
+  <footer class="row">
+    <input type="hidden" name="submitCreate" value="1">
+
++   {hook h='displayBeforeContactFormSubmit' m='pow_captcha'}
+
+    {block "form_buttons"}
+      <div class="form-group text-center">
+```
+
+### Contactform
+
+Add this in `themes/your_theme/modules/contactform/views/templates/widget/contactform.tpl`:
+
+```diff
+  <input type="hidden" name="token" value="{$token}" />
+  <input type="hidden" name="id_contact" value="2" />
+
++ {hook h='displayBeforeContactFormSubmit' m='pow_captcha'}
+
+  <div class="offset-md-3">
+    <input class="btn btn-primary" type="submit" name="submitMessage" value="{l s='Send' d='Shop.Theme.Actions'}">
+  </div>
+```
+
 
 ### Ps_Emailsubscription
 
