@@ -199,12 +199,13 @@ class Pow_Captcha extends Module
     public function shouldValidateCaptcha()
     {
         $captchaEnabled = Configuration::get('POW_CAPTCHA_ENABLE') == 1;
-        $shouldValidateCaptcha = Tools::isSubmit('challenge')
-            && Tools::isSubmit('nonce');
+        $shouldValidateCaptcha = Tools::isSubmit('challenge') && Tools::isSubmit('nonce');
 
         $isSubmittingContactPage = $this->context->controller->php_self == 'contact' && $_SERVER['REQUEST_METHOD'] === 'POST';
+        $isSubmittingRegistration = Tools::getValue('create_account') == 1 && $_SERVER['REQUEST_METHOD'] === 'POST';
+        $isSubmittingNewsletter = (Tools::getValue('module') == 'ps_emailsubscription' && Tools::getValue('controller') == 'subscription' && $_SERVER['REQUEST_METHOD'] === 'POST') || Tools::getValue('submitNewsletter');
 
-        return $captchaEnabled && ($shouldValidateCaptcha || $isSubmittingContactPage);
+        return $captchaEnabled && ($shouldValidateCaptcha || $isSubmittingContactPage || $isSubmittingRegistration || $isSubmittingNewsletter);
     }
 
     /**

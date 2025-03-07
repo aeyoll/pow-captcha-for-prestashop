@@ -78,3 +78,51 @@ In each form template, add the following above the submit button:
 ```
 {hook h='displayBeforeContactFormSubmit' m='pow_captcha'}
 ```
+
+Module compatibility
+---
+
+### Ps_Emailsubscription
+
+Add this in `override/modules/ps_emailsubscription/ps_emailsubscription.php`:
+
+```php
+<?php
+
+class Ps_EmailsubscriptionOverride extends Ps_Emailsubscription
+{
+    public function getWidgetVariables($hookName = null, array $configuration = [])
+    {
+        $variables = [];
+        $variables['value'] = '';
+        $variables['msg'] = '';
+        $variables['conditions'] = Configuration::get('NW_CONDITIONS', $this->context->language->id);
+
+        if (Tools::isSubmit('submitNewsletter')) {
+            $this->error = $this->valid = false;
+
+            // OVERRIDE: check errors from captcha
+            $context = Context::getContext();
+            if ($context->controller->errors) {
+                $this->error = $context->controller->errors[0];
+            } else {
+                $this->newsletterRegistration($hookName);
+            }
+            /// /OVERRIDE
+
+            /* @phpstan-ignore-next-line */
+            if ($this->error) {
+                $variables['value'] = Tools::getValue('email', '');
+                $variables['msg'] = $this->error;
+                $variables['nw_error'] = true;
+            } elseif ($this->valid) { /* @phpstan-ignore-line */
+                $variables['value'] = Tools::getValue('email', '');
+                $variables['msg'] = $this->valid;
+                $variables['nw_error'] = false;
+            }
+        }
+
+        return $variables;
+    }
+}
+```
