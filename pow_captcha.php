@@ -236,6 +236,10 @@ class Pow_Captcha extends Module
                     $this->context->controller->module->error = $this->l('Captcha is not valid');
                 }
 
+                if (Tools::getValue('create_account') == 1) {
+                    Tools::redirect('index.php?controller=authentication');
+                }
+
                 return;
             } else {
                 PrestaShopLogger::addLog('[pow_captcha]: Captcha validated successfully');
