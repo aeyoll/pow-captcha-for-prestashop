@@ -3,6 +3,8 @@
 namespace PrestaShop\Module\PowCaptcha\Service;
 
 use Configuration;
+use PrestaShopLoggerCore;
+use Tools;
 
 class PowCaptchaService
 {
@@ -105,19 +107,45 @@ class PowCaptchaService
     public function validateCaptcha($challenge, $nonce): bool
     {
         $domain = Configuration::get('POW_CAPTCHA_API_URL');
+
+        if (empty($challenge) || empty($nonce)) {
+            $challengeDisplay = is_null($challenge) ? 'undefined' : $challenge;
+            $nonceDisplay = is_null($nonce) ? 'undefined' : $nonce;
+
+            PrestaShopLoggerCore::addLog(
+                "[pow_captcha] Challenge or nonce is not defined: challenge=[{$challengeDisplay}] nonce=[{$nonceDisplay}]",
+                PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_ERROR
+            );
+            return false;
+        }
+
         $url = sprintf('Verify?challenge=%s&nonce=%s', $challenge, $nonce);
         $requestUri = $domain . $url;
+        $ip = Tools::getRemoteAddr();
 
         $ch = $this->getClient();
         curl_setopt($ch, CURLOPT_URL, $requestUri);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, []);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         try {
-            curl_exec($ch);
+            $result = curl_exec($ch);
             $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+            if (curl_errno($ch)) {
+                $error = curl_error($ch);
+                PrestaShopLoggerCore::addLog("[pow_captcha] ip=[{$ip}] | cURL error during captcha validation: error=[{$error}]", PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_ERROR);
+                return false;
+            }
+
+            if ($statusCode !== 200) {
+                PrestaShopLoggerCore::addLog("[pow_captcha] ip=[{$ip}] | Invalid captcha response: status=[{$statusCode}] response={$result}", PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_ERROR);
+            }
+
             return $statusCode === 200;
         } catch (\Exception $e) {
+            PrestaShopLoggerCore::addLog("[pow_captcha] ip=[{$ip}] | Exception during captcha validation: " . $e->getMessage(), PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_ERROR);
             return false;
         }
     }
