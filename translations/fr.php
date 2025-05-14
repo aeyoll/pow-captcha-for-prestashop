@@ -11,3 +11,4 @@ $_MODULE['<{pow_captcha}prestashop>pow_captcha_459a6f79ad9b13cbcb5f692d2cc7a94d'
 $_MODULE['<{pow_captcha}prestashop>pow_captcha_02a3a357710cc2a5dfdfb74ed012fb59'] = 'Url';
 $_MODULE['<{pow_captcha}prestashop>pow_captcha_c9cc8cce247e49bae79f15173ce97354'] = 'Enregistrer';
 $_MODULE['<{pow_captcha}prestashop>pow_captcha_bd91572c208b09ee6a8639ace433025e'] = 'Le captcha n\'est pas valide';
+$_MODULE['<{pow_captcha}prestashop>pow_captcha_ed6a81da9774b592fe2b40e638a28e6f'] = 'Le Captcha n\'est pas valide, veuillez réessayer';
