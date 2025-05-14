@@ -79,6 +79,25 @@ class PowCaptchaFileCache
     }
 
     /**
+     * Writes data atomically.
+     *
+     * @param string $filename
+     * @param mixed  $data
+     *
+     * @return bool
+     */
+    public function atomic_file_put_contents($filename, $data)
+    {
+        $tmpName = $filename . '-' . uniqid('', true);
+
+        if (!file_put_contents($tmpName, $data)) {
+            return false;
+        }
+
+        return rename($tmpName, $filename);
+    }
+
+    /**
      * Puts data into the cache.
      *
      * @param string $id
@@ -95,14 +114,12 @@ class PowCaptchaFileCache
                 return false;
             }
         }
+
         $file_name  = $this->getFileName($id);
         $lifetime   = time() + $lifetime;
         $serialized = serialize($data);
-        $result     = file_put_contents($file_name, $lifetime . PHP_EOL . $serialized);
-        if ($result === false) {
-            return false;
-        }
-        return true;
+
+        return $this->atomic_file_put_contents($file_name, $lifetime . PHP_EOL . $serialized);
     }
 
     //------------------------------------------------
