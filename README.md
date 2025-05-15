@@ -79,6 +79,24 @@ In each form template, add the following above the submit button:
 {hook h='displayBeforeContactFormSubmit' m='pow_captcha'}
 ```
 
+Configuration
+---
+
+You can override the default values for GetChallenge timeout and cache lifetime by defining the following constants in your `defines.inc.php` file:
+
+To override GetChallenge timeout:
+
+```php
+<?php
+define('POW_CAPTCHA_TIMEOUT', 10.0);
+```
+
+To override GetChallenge cache lifetime:
+
+```php
+define('POW_CAPTCHA_CACHE_LIFETIME', 3600);
+```
+
 Compatibility
 ---
 
