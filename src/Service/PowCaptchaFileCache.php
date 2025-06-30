@@ -40,6 +40,36 @@ class PowCaptchaFileCache
     }
 
     /**
+     * Get the content of a file
+     *
+     * @param string $file_name
+     *
+     * @return array|false
+     */
+    public function getFileContent($file_name)
+    {
+        if (!is_file($file_name) || !is_readable($file_name)) {
+            return false;
+        }
+
+        return file($file_name);
+    }
+
+    /**
+     * Get the lifetime of a file
+     *
+     * @param array $lines
+     *
+     * @return int
+     */
+    public function getFileTime($lines)
+    {
+        $lifetime = array_shift($lines);
+        $lifetime = (int) trim($lifetime);
+        return $lifetime;
+    }
+
+    /**
      * Fetches an entry from the cache.
      *
      * @param string $id
@@ -47,21 +77,24 @@ class PowCaptchaFileCache
     public function get($id)
     {
         $file_name = $this->getFileName($id);
+        $lines = $this->getFileContent($file_name);
 
-        if (!is_file($file_name) || !is_readable($file_name)) {
+        if (!$lines) {
             return false;
         }
 
-        $lines    = file($file_name);
-        $lifetime = array_shift($lines);
-        $lifetime = (int) trim($lifetime);
+        $lifetime = $this->getFileTime($lines);
 
         if ($lifetime !== 0 && $lifetime < time()) {
             @unlink($file_name);
             return false;
         }
+
+        array_shift($lines);
+
         $serialized = join('', $lines);
-        $data       = unserialize($serialized);
+        $data = unserialize($serialized);
+
         return $data;
     }
 
@@ -102,24 +135,32 @@ class PowCaptchaFileCache
      *
      * @param string $id
      * @param mixed  $data
-     * @param int    $lifetime
+     * @param int    $expireAfter
      *
      * @return bool
      */
-    public function save($id, $data, $lifetime = 3600)
+    public function save($id, $data, $expireAfter = 3600)
     {
         $dir = $this->getDirectory($id);
+
         if (!is_dir($dir)) {
             if (!mkdir($dir, 0755, true)) {
                 return false;
             }
         }
 
-        $file_name  = $this->getFileName($id);
-        $lifetime   = time() + $lifetime;
+        $file_name = $this->getFileName($id);
+        $file_content = $this->getFileContent($file_name);
+
+        if ($file_content) {
+            $new_lifetime = $this->getFileTime($file_content);
+        } else {
+            $new_lifetime = time() + $expireAfter;
+        }
+
         $serialized = serialize($data);
 
-        return $this->atomic_file_put_contents($file_name, $lifetime . PHP_EOL . $serialized);
+        return $this->atomic_file_put_contents($file_name, $new_lifetime . PHP_EOL . $serialized);
     }
 
     //------------------------------------------------
