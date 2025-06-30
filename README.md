@@ -129,6 +129,31 @@ Add this in `themes/your_theme/modules/contactform/views/templates/widget/contac
   </div>
 ```
 
+In contactform.php, add this override:
+
+```php
+} elseif ($url !== ''
+    || empty($serverToken)
+    || $clientToken !== $serverToken
+    || $clientTokenTTL < time()
+) {
+    $this->context->controller->errors[] = $this->trans(
+        'An error occurred while sending the message, please try again.',
+        [],
+        'Modules.Contactform.Shop'
+    );
+    $this->createNewToken();
+// OVERRIDE: Add this elseif to prevent the message from being logged in the SAV
+} elseif (count($this->context->controller->errors) > 0) {
+    // do nothing, usefull for captcha
+// OVERRIDE
+} else {
+    $customer = $this->context->customer;
+
+    if (!$customer->id) {
+        $customer->getByEmail($from);
+    }
+```
 
 ### Ps_Emailsubscription
 
