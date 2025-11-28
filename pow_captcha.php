@@ -251,7 +251,8 @@ class Pow_Captcha extends Module
         $shouldValidateCaptcha = $this->shouldValidateCaptcha();
 
         $isAccountCreation = Tools::getValue('create_account') == 1 && Tools::getValue('submitCreate') == 1;
-        $needsCaptchaValidation = $shouldValidateCaptcha && $isAccountCreation;
+        $isGuestCreation = Tools::getValue('password') === '' && Tools::getValue('submitCreate') == 1;
+        $needsCaptchaValidation = $shouldValidateCaptcha && ($isAccountCreation || $isGuestCreation);
 
         if ($needsCaptchaValidation) {
             $challenge = Tools::getValue('challenge', null);
