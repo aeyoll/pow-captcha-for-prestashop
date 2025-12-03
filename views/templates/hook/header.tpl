@@ -70,6 +70,25 @@
       inputs.forEach(input => {
         input.addEventListener('focus', fetchAndInitCaptcha);
       });
+
+      // Disable submit buttons when form is submitted
+      form.addEventListener('submit', function() {
+        const submitButtons = form.querySelectorAll('input[type="submit"], button[type="submit"]');
+        submitButtons.forEach(button => {
+          // Create an hidden input with the same name and value as the submit button
+          // If we don't do that, since the submit button is disabled, the form will not be
+          // processed.
+          const hiddenInput = document.createElement('input');
+          hiddenInput.type = 'hidden';
+          hiddenInput.name = button.name;
+          hiddenInput.value = button.value;
+          form.appendChild(hiddenInput);
+
+          // Disable the submit button
+          button.disabled = true;
+        });
+      });
     });
   });
 </script>
+
