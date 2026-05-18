@@ -201,11 +201,12 @@ class Pow_Captcha extends Module
     {
         $captchaEnabled = Configuration::get('POW_CAPTCHA_ENABLE') == 1;
         $shouldValidateCaptcha = Tools::isSubmit('challenge') && Tools::isSubmit('nonce');
+        $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
 
-        $isSubmittingContactPage = $this->context->controller->php_self == 'contact' && $_SERVER['REQUEST_METHOD'] === 'POST';
-        $isSubmittingRegistration = (Tools::getValue('create_account') == 1 || Tools::getValue('submitCreate') == 1) && $_SERVER['REQUEST_METHOD'] === 'POST';
-        $isSubmittingNewsletter = (Tools::getValue('module') == 'ps_emailsubscription' && Tools::getValue('controller') == 'subscription' && $_SERVER['REQUEST_METHOD'] === 'POST') || Tools::getValue('submitNewsletter');
-        $isSubmittingPasswordReset = $this->context->controller->php_self == 'password' && $_SERVER['REQUEST_METHOD'] === 'POST';
+        $isSubmittingContactPage = $this->context->controller->php_self == 'contact' && $isPost;
+        $isSubmittingRegistration = (Tools::getValue('create_account') == 1 || Tools::getValue('submitCreate') == 1) && $isPost;
+        $isSubmittingNewsletter = (Tools::getValue('module') == 'ps_emailsubscription' && Tools::getValue('controller') == 'subscription' && $isPost) || Tools::getValue('submitNewsletter');
+        $isSubmittingPasswordReset = $this->context->controller->php_self == 'password' && $isPost;
 
         return $captchaEnabled && ($shouldValidateCaptcha || $isSubmittingContactPage || $isSubmittingRegistration || $isSubmittingNewsletter || $isSubmittingPasswordReset);
     }
