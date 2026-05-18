@@ -205,8 +205,9 @@ class Pow_Captcha extends Module
         $isSubmittingContactPage = $this->context->controller->php_self == 'contact' && $_SERVER['REQUEST_METHOD'] === 'POST';
         $isSubmittingRegistration = (Tools::getValue('create_account') == 1 || Tools::getValue('submitCreate') == 1) && $_SERVER['REQUEST_METHOD'] === 'POST';
         $isSubmittingNewsletter = (Tools::getValue('module') == 'ps_emailsubscription' && Tools::getValue('controller') == 'subscription' && $_SERVER['REQUEST_METHOD'] === 'POST') || Tools::getValue('submitNewsletter');
+        $isSubmittingPasswordReset = $this->context->controller->php_self == 'password' && $_SERVER['REQUEST_METHOD'] === 'POST';
 
-        return $captchaEnabled && ($shouldValidateCaptcha || $isSubmittingContactPage || $isSubmittingRegistration || $isSubmittingNewsletter);
+        return $captchaEnabled && ($shouldValidateCaptcha || $isSubmittingContactPage || $isSubmittingRegistration || $isSubmittingNewsletter || $isSubmittingPasswordReset);
     }
 
     /**
