@@ -199,3 +199,19 @@ class Ps_EmailsubscriptionOverride extends Ps_Emailsubscription
     }
 }
 ```
+
+### Reset password
+
+In controllers/front/PasswordController.php:
+
+```php
+protected function sendRenewPasswordLink()
+{
+    if (!($email = $this->IDNConverter->emailToUtf8(trim(Tools::getValue('email')))) || !Validate::isEmail($email)) {
+        $this->errors[] = $this->trans('Invalid email address.', [], 'Shop.Notifications.Error');
+    } else if (count($this->context->controller->errors) > 0) {
+        // OVERRIDE
+        // Do nothing
+        // /OVERRIDE
+    } else {
+```
