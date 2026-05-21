@@ -61,7 +61,7 @@ class PowCaptchaService
 
         curl_setopt($ch, CURLOPT_URL, $requestUri);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, []);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, '');
 
         $json = curl_exec($ch);
         $data = json_decode($json, true);
@@ -181,7 +181,7 @@ class PowCaptchaService
         $ch = $this->getClient();
         curl_setopt($ch, CURLOPT_URL, $requestUri);
         curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, []);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, '');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         try {
