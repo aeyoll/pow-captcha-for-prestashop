@@ -237,7 +237,7 @@ class Pow_Captcha extends Module
 
                 // When the controller is a ModuleFrontController, the error can be
                 // in "controller->module->error" (e.g. in ps_emailsubscription)
-                if (property_exists($this->context->controller, 'module')) {
+                if (property_exists($this->context->controller, 'module') && $this->context->controller->module) {
                     $this->context->controller->module->error = $this->l('Captcha is not valid');
                 }
 
