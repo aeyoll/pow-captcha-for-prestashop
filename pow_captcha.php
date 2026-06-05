@@ -278,31 +278,32 @@ class Pow_Captcha extends Module
     public function hookActionSubmitAccountBefore()
     {
         $shouldValidateCaptcha = $this->shouldValidateCaptcha();
+        $needsCaptchaValidation = $shouldValidateCaptcha && $this->isRegistrationSubmission();
 
-        $isAccountCreation = Tools::getValue('create_account') == 1 && Tools::getValue('submitCreate') == 1;
-        $isGuestCreation = (Tools::getValue('password') === '' || Tools::getValue('password') === false) && Tools::getValue('submitCreate') == 1;
-        $needsCaptchaValidation = $shouldValidateCaptcha && ($isAccountCreation || $isGuestCreation);
-
-        if ($needsCaptchaValidation) {
-            $challenge = Tools::getValue('challenge', null);
-            $nonce = Tools::getValue('nonce', null);
-            $challengeDisplay = is_null($challenge) ? 'undefined' : $challenge;
-            $nonceDisplay = is_null($nonce) ? 'undefined' : $nonce;
-
-            $this->log(sprintf('Trying to validate captcha: challenge=[%s] nonce=[%s] create_account=[%s] submit_create=[%s]', $challengeDisplay, $nonceDisplay, Tools::getValue('create_account'), Tools::getValue('submitCreate')));
-
-            $pcs = new PowCaptchaService();
-            $isValid = $pcs->validateCaptcha($challenge, $nonce);
-            if (!$isValid) {
-                $this->log(sprintf('Failed to validate captcha during account submission: challenge=[%s] nonce=[%s]', $challengeDisplay, $nonceDisplay), PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_WARNING);
-
-                $this->context->controller->errors[] = $this->l('Captcha is not valid, try again');
-                return;
-            } else {
-                $this->log(sprintf('Registration Captcha validated successfully during account submission: challenge=[%s] nonce=[%s]', $challengeDisplay, $nonceDisplay));
-                return true;
-            }
+        if (!$needsCaptchaValidation) {
+            return true;
         }
+
+        $challenge = Tools::getValue('challenge', null);
+        $nonce = Tools::getValue('nonce', null);
+        $challengeDisplay = is_null($challenge) ? 'undefined' : $challenge;
+        $nonceDisplay = is_null($nonce) ? 'undefined' : $nonce;
+
+        $this->log(sprintf('Trying to validate captcha: challenge=[%s] nonce=[%s] create_account=[%s] submit_create=[%s]', $challengeDisplay, $nonceDisplay, Tools::getValue('create_account'), Tools::getValue('submitCreate')));
+
+        $pcs = new PowCaptchaService();
+        $isValid = $pcs->validateCaptcha($challenge, $nonce);
+        if (!$isValid) {
+            $this->log(sprintf('Failed to validate captcha during account submission: challenge=[%s] nonce=[%s]', $challengeDisplay, $nonceDisplay), PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_WARNING);
+
+            $this->context->controller->errors[] = $this->l('Captcha is not valid, try again');
+
+            return false;
+        }
+
+        $this->log(sprintf('Registration Captcha validated successfully during account submission: challenge=[%s] nonce=[%s]', $challengeDisplay, $nonceDisplay));
+
+        return true;
     }
 
     protected function log($message, $severity = PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_INFORMATIVE)
