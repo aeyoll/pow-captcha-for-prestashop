@@ -250,16 +250,9 @@ class Pow_Captcha extends Module
         if ($shouldValidateCaptcha && $this->shouldValidateCaptchaInInitAfter()) {
             $challenge = Tools::getValue('challenge', '');
             $nonce = Tools::getValue('nonce', '');
-            $challengeDisplay = is_null($challenge) ? 'undefined' : $challenge;
-            $nonceDisplay = is_null($nonce) ? 'undefined' : $nonce;
 
-            $this->log(sprintf('Trying to validate captcha: challenge=[%s] nonce=[%s]', $challengeDisplay, $nonceDisplay));
-
-            $pcs = new PowCaptchaService();
-            $isValid = $pcs->validateCaptcha($challenge, $nonce);
-
-            if (!$isValid) {
-                $this->log(sprintf('Failed to validate captcha: challenge=[%s] nonce=[%s]', $challengeDisplay, $nonceDisplay), PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_WARNING);
+            if (!$this->validateSubmittedCaptcha($challenge, $nonce)) {
+                $this->log('Failed to validate captcha', PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_WARNING);
                 $this->context->controller->errors[] = $this->l('Captcha is not valid');
 
                 // When the controller is a ModuleFrontController, the error can be
@@ -269,9 +262,9 @@ class Pow_Captcha extends Module
                 }
 
                 return;
-            } else {
-                $this->log(sprintf('Captcha validated successfully: challenge=[%s] nonce=[%s]', $challengeDisplay, $nonceDisplay));
             }
+
+            $this->log('Captcha validated successfully');
         }
     }
 
@@ -286,24 +279,71 @@ class Pow_Captcha extends Module
 
         $challenge = Tools::getValue('challenge', null);
         $nonce = Tools::getValue('nonce', null);
-        $challengeDisplay = is_null($challenge) ? 'undefined' : $challenge;
-        $nonceDisplay = is_null($nonce) ? 'undefined' : $nonce;
 
-        $this->log(sprintf('Trying to validate captcha: challenge=[%s] nonce=[%s] create_account=[%s] submit_create=[%s]', $challengeDisplay, $nonceDisplay, Tools::getValue('create_account'), Tools::getValue('submitCreate')));
+        $this->log('Trying to validate captcha during account submission');
 
-        $pcs = new PowCaptchaService();
-        $isValid = $pcs->validateCaptcha($challenge, $nonce);
-        if (!$isValid) {
-            $this->log(sprintf('Failed to validate captcha during account submission: challenge=[%s] nonce=[%s]', $challengeDisplay, $nonceDisplay), PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_WARNING);
+        if (!$this->validateSubmittedCaptcha($challenge, $nonce)) {
+            $this->log('Failed to validate captcha during account submission', PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_WARNING);
 
             $this->context->controller->errors[] = $this->l('Captcha is not valid, try again');
 
             return false;
         }
 
-        $this->log(sprintf('Registration Captcha validated successfully during account submission: challenge=[%s] nonce=[%s]', $challengeDisplay, $nonceDisplay));
+        $this->log('Registration captcha validated successfully during account submission');
 
         return true;
+    }
+
+    /**
+     * Stores the issued challenge in the visitor cookie for later verification.
+     */
+    public function issueChallenge($challenge): void
+    {
+        if (empty($challenge)) {
+            return;
+        }
+
+        $this->context->cookie->pow_captcha_challenge = $challenge;
+        $this->context->cookie->write();
+    }
+
+    /**
+     * Validates challenge and nonce, ensuring the challenge was issued to this visitor.
+     */
+    protected function validateSubmittedCaptcha($challenge, $nonce): bool
+    {
+        if (!$this->isIssuedChallenge($challenge)) {
+            $this->log('Submitted challenge does not match issued challenge', PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_WARNING);
+
+            return false;
+        }
+
+        $pcs = new PowCaptchaService();
+        $isValid = $pcs->validateCaptcha($challenge, $nonce);
+
+        if ($isValid) {
+            $this->clearIssuedChallenge();
+        }
+
+        return $isValid;
+    }
+
+    protected function isIssuedChallenge($challenge): bool
+    {
+        if (empty($challenge)) {
+            return false;
+        }
+
+        $issuedChallenge = $this->context->cookie->pow_captcha_challenge ?? '';
+
+        return !empty($issuedChallenge) && hash_equals((string) $issuedChallenge, (string) $challenge);
+    }
+
+    protected function clearIssuedChallenge(): void
+    {
+        $this->context->cookie->pow_captcha_challenge = '';
+        $this->context->cookie->write();
     }
 
     protected function log($message, $severity = PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_INFORMATIVE)

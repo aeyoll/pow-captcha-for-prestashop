@@ -26,6 +26,12 @@ class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
         $pcs = new PowCaptchaService();
         $challenge = $pcs->getChallenge();
 
+        /** @var Pow_Captcha|false $module */
+        $module = Module::getInstanceByName('pow_captcha');
+        if ($module && $challenge) {
+            $module->issueChallenge($challenge);
+        }
+
         $this->context->smarty->assign([
             'powCaptchaApiUrl' => $powCaptchaApiUrl,
             'challenge' => $challenge,
