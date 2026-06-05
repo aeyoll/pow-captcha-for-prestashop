@@ -1,5 +1,6 @@
 <?php
 
+use PrestaShop\Module\PowCaptcha\Service\PowCaptchaRateLimiter;
 use PrestaShop\Module\PowCaptcha\Service\PowCaptchaService;
 
 $autoloadPaths = [
@@ -20,6 +21,18 @@ class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
     public function initContent()
     {
         parent::initContent();
+
+        $rateLimiter = new PowCaptchaRateLimiter();
+        $ip = Tools::getRemoteAddr();
+
+        if (!$rateLimiter->isAllowed($ip)) {
+            header('HTTP/1.1 429 Too Many Requests');
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'rate_limit_exceeded']);
+            exit;
+        }
+
+        $rateLimiter->recordRequest($ip);
 
         $powCaptchaApiUrl = Configuration::get('POW_CAPTCHA_API_URL');
 
