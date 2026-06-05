@@ -93,7 +93,11 @@ class PowCaptchaFileCache
         array_shift($lines);
 
         $serialized = join('', $lines);
-        $data = unserialize($serialized);
+        $data = json_decode($serialized, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return false;
+        }
 
         return $data;
     }
@@ -158,7 +162,7 @@ class PowCaptchaFileCache
             $new_lifetime = time() + $expireAfter;
         }
 
-        $serialized = serialize($data);
+        $serialized = json_encode($data);
 
         return $this->atomic_file_put_contents($file_name, $new_lifetime . PHP_EOL . $serialized);
     }
