@@ -18,6 +18,30 @@
     Array.from(document.querySelectorAll("button[type='submit']")).forEach(e => e.disabled = false);
   };
 
+  function buildCaptchaMarkup(challenge, apiUrl) {
+    const challengeInput = document.createElement('input');
+    challengeInput.type = 'hidden';
+    challengeInput.name = 'challenge';
+    challengeInput.value = challenge;
+
+    const nonceInput = document.createElement('input');
+    nonceInput.type = 'hidden';
+    nonceInput.name = 'nonce';
+
+    const container = document.createElement('div');
+    container.className = 'captcha-container';
+    container.dataset.sqrCaptchaUrl = apiUrl;
+    container.dataset.sqrCaptchaChallenge = challenge;
+    container.dataset.sqrCaptchaCallback = 'myCaptchaCallback';
+
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(challengeInput);
+    fragment.appendChild(nonceInput);
+    fragment.appendChild(container);
+
+    return fragment;
+  }
+
   // Function to fetch and initialize captcha
   async function fetchAndInitCaptcha() {
     if (captchaFetched) {
@@ -31,21 +55,30 @@
       return;
     }
 
-    let captchaHtml = '';
+    let captchaData = null;
 
     // Fetch captcha content from the API
     await fetch(url)
-      .then(response => response.text())
-      .then(html => {
-        captchaHtml = html;
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.challenge && data.apiUrl) {
+          captchaData = data;
+        }
       })
       .catch(error => {
         console.error('Error:', error);
       });
 
+    if (!captchaData) {
+      return;
+    }
+
     // Assign captcha content to each captcha on the page
     captchas.forEach((captcha) => {
-      captcha.innerHTML = captchaHtml;
+      while (captcha.firstChild) {
+        captcha.removeChild(captcha.firstChild);
+      }
+      captcha.appendChild(buildCaptchaMarkup(captchaData.challenge, captchaData.apiUrl));
     });
 
     // Init the captcha
