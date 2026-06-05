@@ -204,11 +204,38 @@ class Pow_Captcha extends Module
         $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
 
         $isSubmittingContactPage = $this->context->controller->php_self == 'contact' && $isPost;
-        $isSubmittingRegistration = (Tools::getValue('create_account') == 1 || Tools::getValue('submitCreate') == 1) && $isPost;
+        $isSubmittingRegistration = $this->isRegistrationSubmission();
         $isSubmittingNewsletter = (Tools::getValue('module') == 'ps_emailsubscription' && Tools::getValue('controller') == 'subscription' && $isPost) || Tools::getValue('submitNewsletter');
         $isSubmittingPasswordReset = $this->context->controller->php_self == 'password' && $isPost;
 
         return $captchaEnabled && ($shouldValidateCaptcha || $isSubmittingContactPage || $isSubmittingRegistration || $isSubmittingNewsletter || $isSubmittingPasswordReset);
+    }
+
+    /**
+     * Detects account-creation POST requests on registration/checkout controllers.
+     */
+    protected function isRegistrationSubmission(): bool
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            return false;
+        }
+
+        $phpSelf = $this->context->controller->php_self ?? '';
+
+        if (!in_array($phpSelf, ['registration', 'authentication', 'order', 'orderopc'], true)) {
+            return false;
+        }
+
+        return Tools::getValue('create_account') == 1 || Tools::getValue('submitCreate') == 1;
+    }
+
+    /**
+     * Registration on the dedicated page is handled by hookActionSubmitAccountBefore.
+     * Checkout controllers validate here because that hook may not fire.
+     */
+    protected function shouldValidateCaptchaInInitAfter(): bool
+    {
+        return ($this->context->controller->php_self ?? '') !== 'registration';
     }
 
     /**
@@ -220,7 +247,7 @@ class Pow_Captcha extends Module
     {
         $shouldValidateCaptcha = $this->shouldValidateCaptcha();
 
-        if ($shouldValidateCaptcha && Tools::getValue('create_account') != 1 && Tools::getValue('submitCreate') != 1) {
+        if ($shouldValidateCaptcha && $this->shouldValidateCaptchaInInitAfter()) {
             $challenge = Tools::getValue('challenge', '');
             $nonce = Tools::getValue('nonce', '');
             $challengeDisplay = is_null($challenge) ? 'undefined' : $challenge;
