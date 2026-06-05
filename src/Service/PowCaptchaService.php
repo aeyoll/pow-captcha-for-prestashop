@@ -174,7 +174,11 @@ class PowCaptchaService
             return false;
         }
 
-        $url = sprintf('Verify?challenge=%s&nonce=%s', $challenge, $nonce);
+        $url = sprintf(
+            'Verify?challenge=%s&nonce=%s',
+            rawurlencode((string) $challenge),
+            rawurlencode((string) $nonce)
+        );
         $requestUri = $domain . $url;
         $ip = Tools::getRemoteAddr();
 
