@@ -232,9 +232,14 @@ class Pow_Captcha extends Module
     /**
      * Registration on the dedicated page is handled by hookActionSubmitAccountBefore.
      * Checkout controllers validate here because that hook may not fire.
+     * Only relevant on PrestaShop >= 1.7.1 (dedicated registration controller).
      */
     protected function shouldValidateCaptchaInInitAfter(): bool
     {
+        if (version_compare(_PS_VERSION_, '1.7.1.0', '<')) {
+            return true;
+        }
+
         return ($this->context->controller->php_self ?? '') !== 'registration';
     }
 
@@ -357,3 +362,4 @@ class Pow_Captcha extends Module
         PrestaShopLogger::addLog($fullMessage, $severity);
     }
 }
+
