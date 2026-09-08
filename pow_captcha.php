@@ -1,7 +1,5 @@
 <?php
 
-use PrestaShop\Module\PowCaptcha\Service\PowCaptchaService;
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -20,6 +18,12 @@ foreach ($autoloadPaths as $autoloadPath) {
 
 class Pow_Captcha extends Module
 {
+    public const LOG_SEVERITY_LEVEL_DEBUG = 0;
+    public const LOG_SEVERITY_LEVEL_INFORMATIVE = 1;
+    public const LOG_SEVERITY_LEVEL_WARNING = 2;
+    public const LOG_SEVERITY_LEVEL_ERROR = 3;
+    public const LOG_SEVERITY_LEVEL_MAJOR = 4;
+
     public $errors = [];
 
     public function __construct()
@@ -115,12 +119,12 @@ class Pow_Captcha extends Module
                         'values' => array(
                             array(
                                 'id' => 'active_on',
-                                'value' => true,
+                                'value' => 1,
                                 'label' => $this->l('Enabled')
                             ),
                             array(
                                 'id' => 'active_off',
-                                'value' => false,
+                                'value' => 0,
                                 'label' => $this->l('Disabled')
                             )
                         ),
@@ -149,9 +153,9 @@ class Pow_Captcha extends Module
     protected function getConfigFormValues()
     {
         return array(
-            'POW_CAPTCHA_ENABLE' => Configuration::get('POW_CAPTCHA_ENABLE', true),
-            'POW_CAPTCHA_API_TOKEN' => Configuration::get('POW_CAPTCHA_API_TOKEN', ''),
-            'POW_CAPTCHA_API_URL' => Configuration::get('POW_CAPTCHA_API_URL', ''),
+            'POW_CAPTCHA_ENABLE' => (int) Configuration::get('POW_CAPTCHA_ENABLE'),
+            'POW_CAPTCHA_API_TOKEN' => Configuration::get('POW_CAPTCHA_API_TOKEN'),
+            'POW_CAPTCHA_API_URL' => Configuration::get('POW_CAPTCHA_API_URL'),
         );
     }
 
@@ -257,7 +261,7 @@ class Pow_Captcha extends Module
             $nonce = Tools::getValue('nonce', '');
 
             if (!$this->validateSubmittedCaptcha($challenge, $nonce)) {
-                $this->log('Failed to validate captcha', PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_WARNING);
+                $this->log('Failed to validate captcha', self::LOG_SEVERITY_LEVEL_WARNING);
                 $this->context->controller->errors[] = $this->l('Captcha is not valid');
 
                 // When the controller is a ModuleFrontController, the error can be
@@ -288,7 +292,7 @@ class Pow_Captcha extends Module
         $this->log('Trying to validate captcha during account submission');
 
         if (!$this->validateSubmittedCaptcha($challenge, $nonce)) {
-            $this->log('Failed to validate captcha during account submission', PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_WARNING);
+            $this->log('Failed to validate captcha during account submission', self::LOG_SEVERITY_LEVEL_WARNING);
 
             $this->context->controller->errors[] = $this->l('Captcha is not valid, try again');
 
@@ -319,12 +323,12 @@ class Pow_Captcha extends Module
     protected function validateSubmittedCaptcha($challenge, $nonce): bool
     {
         if (!$this->isIssuedChallenge($challenge)) {
-            $this->log('Submitted challenge does not match issued challenge', PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_WARNING);
+            $this->log('Submitted challenge does not match issued challenge', self::LOG_SEVERITY_LEVEL_WARNING);
 
             return false;
         }
 
-        $pcs = new PowCaptchaService();
+        $pcs = new \PrestaShop\Module\PowCaptcha\Service\PowCaptchaService();
         $isValid = $pcs->validateCaptcha($challenge, $nonce);
 
         if ($isValid) {
@@ -351,8 +355,12 @@ class Pow_Captcha extends Module
         $this->context->cookie->write();
     }
 
-    protected function log($message, $severity = PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_INFORMATIVE)
+    protected function log($message, $severity = null)
     {
+        if ($severity === null) {
+            $severity = self::LOG_SEVERITY_LEVEL_INFORMATIVE;
+        }
+
         $ip = Tools::getRemoteAddr();
         $context = Context::getContext();
         $userId = isset($context->customer) ? $context->customer->id : null;
