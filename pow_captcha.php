@@ -234,9 +234,9 @@ class Pow_Captcha extends Module
     }
 
     /**
-     * Registration on the dedicated page is handled by hookActionSubmitAccountBefore.
-     * Checkout controllers validate here because that hook may not fire.
-     * Only relevant on PrestaShop >= 1.7.1 (dedicated registration controller).
+     * Skip when actionSubmitAccountBefore will verify the same one-time challenge later.
+     * On 1.7 that is AuthController (php_self authentication) plus the registration page.
+     * Checkout does not fire that hook, so it still validates here.
      */
     protected function shouldValidateCaptchaInInitAfter(): bool
     {
@@ -244,7 +244,13 @@ class Pow_Captcha extends Module
             return true;
         }
 
-        return ($this->context->controller->php_self ?? '') !== 'registration';
+        $phpSelf = $this->context->controller->php_self ?? '';
+
+        if ($phpSelf === 'registration') {
+            return false;
+        }
+
+        return !($phpSelf === 'authentication' && Tools::isSubmit('submitCreate'));
     }
 
     /**
