@@ -26,11 +26,14 @@ class Pow_Captcha extends Module
 
     public $errors = [];
 
+    // request-scoped; cookie would let a solved captcha replay on later POSTs
+    private $captchaValidatedThisRequest = false;
+
     public function __construct()
     {
         $this->name = 'pow_captcha';
         $this->tab = 'front_office_features';
-        $this->version = '1.0.0';
+        $this->version = '1.0.1';
         $this->author = 'aeyoll';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -50,6 +53,7 @@ class Pow_Captcha extends Module
             'displayBeforeContactFormSubmit',
             'actionControllerInitAfter',
             'actionSubmitAccountBefore',
+            'actionBeforeSubmitAccount',
         ];
 
         return parent::install()
@@ -217,6 +221,9 @@ class Pow_Captcha extends Module
 
     /**
      * Detects account-creation POST requests on registration/checkout controllers.
+     *
+     * 1.6 AuthController uses submitAccount / submitGuestAccount on php_self authentication
+     * (friendly URL /connexion) and order-opc. 1.7+ uses submitCreate / create_account.
      */
     protected function isRegistrationSubmission(): bool
     {
@@ -226,11 +233,14 @@ class Pow_Captcha extends Module
 
         $phpSelf = $this->context->controller->php_self ?? '';
 
-        if (!in_array($phpSelf, ['registration', 'authentication', 'order', 'orderopc'], true)) {
+        if (!in_array($phpSelf, ['registration', 'authentication', 'order', 'orderopc', 'order-opc'], true)) {
             return false;
         }
 
-        return Tools::getValue('create_account') == 1 || Tools::getValue('submitCreate') == 1;
+        return Tools::isSubmit('submitAccount')
+            || Tools::isSubmit('submitGuestAccount')
+            || Tools::isSubmit('submitCreate')
+            || Tools::getValue('create_account') == 1;
     }
 
     /**
@@ -283,6 +293,15 @@ class Pow_Captcha extends Module
         }
     }
 
+    /**
+     * PrestaShop 1.6 fires this from AuthController::processSubmitAccount().
+     * Return value is ignored; controller->errors still blocks $customer->add().
+     */
+    public function hookActionBeforeSubmitAccount()
+    {
+        return $this->hookActionSubmitAccountBefore();
+    }
+
     public function hookActionSubmitAccountBefore()
     {
         $shouldValidateCaptcha = $this->shouldValidateCaptcha();
@@ -328,6 +347,10 @@ class Pow_Captcha extends Module
      */
     protected function validateSubmittedCaptcha($challenge, $nonce): bool
     {
+        if ($this->captchaValidatedThisRequest) {
+            return true;
+        }
+
         if (!$this->isIssuedChallenge($challenge)) {
             $this->log('Submitted challenge does not match issued challenge', self::LOG_SEVERITY_LEVEL_WARNING);
 
@@ -339,6 +362,7 @@ class Pow_Captcha extends Module
 
         if ($isValid) {
             $this->clearIssuedChallenge();
+            $this->captchaValidatedThisRequest = true;
         }
 
         return $isValid;
