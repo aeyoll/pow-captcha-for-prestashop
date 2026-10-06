@@ -3,6 +3,7 @@
 namespace PrestaShop\Module\PowCaptcha\Service;
 
 use Configuration;
+use Pow_Captcha;
 use PrestaShopLoggerCore;
 use Tools;
 
@@ -169,7 +170,7 @@ class PowCaptchaService
 
             PrestaShopLoggerCore::addLog(
                 "[pow_captcha] Challenge or nonce is not defined: challenge=[{$challengeDisplay}] nonce=[{$nonceDisplay}]",
-                PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_ERROR
+                Pow_Captcha::LOG_SEVERITY_LEVEL_ERROR
             );
             return false;
         }
@@ -194,17 +195,17 @@ class PowCaptchaService
 
             if (curl_errno($ch)) {
                 $error = curl_error($ch);
-                PrestaShopLoggerCore::addLog("[pow_captcha] ip=[{$ip}] | cURL error during captcha validation: error=[{$error}]", PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_ERROR);
+                PrestaShopLoggerCore::addLog("[pow_captcha] ip=[{$ip}] | cURL error during captcha validation: error=[{$error}]", Pow_Captcha::LOG_SEVERITY_LEVEL_ERROR);
                 return false;
             }
 
             if ($statusCode !== 200) {
-                PrestaShopLoggerCore::addLog("[pow_captcha] ip=[{$ip}] | Invalid captcha response: status=[{$statusCode}] response={$result}", PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_ERROR);
+                PrestaShopLoggerCore::addLog("[pow_captcha] ip=[{$ip}] | Invalid captcha response: status=[{$statusCode}] response={$result}", Pow_Captcha::LOG_SEVERITY_LEVEL_ERROR);
             }
 
             return $statusCode === 200;
         } catch (\Exception $e) {
-            PrestaShopLoggerCore::addLog("[pow_captcha] ip=[{$ip}] | Exception during captcha validation: " . $e->getMessage(), PrestaShopLoggerCore::LOG_SEVERITY_LEVEL_ERROR);
+            PrestaShopLoggerCore::addLog("[pow_captcha] ip=[{$ip}] | Exception during captcha validation: " . $e->getMessage(), Pow_Captcha::LOG_SEVERITY_LEVEL_ERROR);
             return false;
         }
     }
