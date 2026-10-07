@@ -39,12 +39,6 @@ class Pow_CaptchaAjaxModuleFrontController extends ModuleFrontController
         $pcs = new PowCaptchaService();
         $challenge = $pcs->getChallenge();
 
-        /** @var Pow_Captcha|false $module */
-        $module = Module::getInstanceByName('pow_captcha');
-        if ($module && $challenge) {
-            $module->issueChallenge($challenge);
-        }
-
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Cache-Control: post-check=0, pre-check=0', false);
         header('Pragma: no-cache');
