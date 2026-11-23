@@ -67,6 +67,7 @@
   function initSqrCaptcha() {
     if (typeof window.sqrCaptchaInit === 'function') {
       window.sqrCaptchaInit();
+      startSqrCaptcha();
 
       return;
     }
@@ -76,6 +77,25 @@
       if (typeof window.sqrCaptchaInit === 'function') {
         clearInterval(timer);
         window.sqrCaptchaInit();
+        startSqrCaptcha();
+      } else if (Date.now() - started > 10000) {
+        clearInterval(timer);
+      }
+    }, 50);
+  }
+
+  // captcha.js only starts the proof of work on change/keydown handlers bound during init,
+  // so the interaction that lazy-loaded the challenge (e.g. ticking a required checkbox on a
+  // prefilled form) is lost and the submit stays disabled. Start it ourselves once
+  // the widget sqrCaptchaTrigger targets (the last one) is rendered, which waits for captcha.css.
+  function startSqrCaptcha() {
+    const started = Date.now();
+    const timer = setInterval(() => {
+      const widget = Array.from(document.querySelectorAll('[data-sqr-captcha-challenge]')).pop();
+
+      if (widget && widget.querySelector('.sqr-captcha-progress-bar-container') && typeof window.sqrCaptchaTrigger === 'function') {
+        clearInterval(timer);
+        window.sqrCaptchaTrigger();
       } else if (Date.now() - started > 10000) {
         clearInterval(timer);
       }
@@ -148,7 +168,13 @@
     }
 
     // Re-query: another caller may have filled placeholders while we awaited
-    uninitializedPlaceholders().forEach((captcha) => {
+    const pendingCaptchas = uninitializedPlaceholders();
+
+    if (pendingCaptchas.length <= 0) {
+      return;
+    }
+
+    pendingCaptchas.forEach((captcha) => {
       while (captcha.firstChild) {
         captcha.removeChild(captcha.firstChild);
       }
@@ -182,6 +208,8 @@
       form.dataset.powCaptchaBound = '1';
       // focusin bubbles: covers inputs added after bind / after HTML swap
       form.addEventListener('focusin', fetchAndInitCaptcha);
+      // Safari does not focus checkboxes on click, so focusin alone can miss a checkbox-only interaction
+      form.addEventListener('change', fetchAndInitCaptcha);
       form.addEventListener('submit', onCaptchaFormSubmit);
     }
 
